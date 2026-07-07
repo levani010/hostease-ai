@@ -51,7 +51,7 @@
                         <input type="radio" name="tone" value="שיווקי, מודה, אדיב ומזמין לבקר שוב. נצל את הביקורת הטובה כדי להדגיש את היתרונות של הצימר." checked class="w-4 h-4 text-indigo-600 focus:ring-indigo-500 ml-3">
                         <div>
                             <span class="block font-semibold text-gray-900 text-sm">שיווקי ומודה</span>
-                            <span class="block text-xs text-gray-500 mt-0.5">(לביקורות טובות שרוצים למנף)</span>
+                            <span class="block text-xs text-gray-500 mt-0.5">(לביקורות טובות)</span>
                         </div>
                     </label>
 
@@ -67,7 +67,7 @@
                         <input type="radio" name="tone" value="מקצועי, קר רוח, עומד על שלנו ומגן על שמע הצימר באסרטיביות מול אורח קנטרן או לא הוגן, אך שומר על שפה מכובדת." class="w-4 h-4 text-indigo-600 focus:ring-indigo-500 ml-3">
                         <div>
                             <span class="block font-semibold text-gray-900 text-sm">מקצועי ואסרטיבי</span>
-                            <span class="block text-xs text-gray-500 mt-0.5">(לעמידה על שלכם מול אורח קנטרן)</span>
+                            <span class="block text-xs text-gray-500 mt-0.5">(מול אורח קנטרן)</span>
                         </div>
                     </label>
 
@@ -86,14 +86,13 @@
                     </button>
                 </div>
                 <div id="outputContainer" class="w-full p-4 bg-gray-50 border border-gray-200 rounded-xl text-gray-700 whitespace-pre-line text-right min-h-[100px]">
-                    </div>
+                </div>
             </div>
 
         </div>
     </main>
 
     <script>
-        // טעינת מפתח ה-API מהזיכרון המקומי של הדפדפן אם הוא כבר קיים
         document.getElementById('apiKeyInput').value = localStorage.getItem('hostease_api_key') || '';
 
         async function generateResponse() {
@@ -114,16 +113,13 @@
                 return;
             }
 
-            // שמירת המפתח בדפדפן לנוחיות המשתמש בפעמים הבאות
             localStorage.setItem('hostease_api_key', apiKey);
 
-            // שינוי מצב הכפתור לטעינה
             submitBtn.disabled = true;
             submitBtn.innerText = "⏳ ה-AI מנתח ומג'נרט תגובה...";
             resultArea.classList.add('hidden');
 
             try {
-                // פנייה ישירה לשרתים של OpenAI
                 const response = await fetch('https://api.openai.com/v1/chat/completions', {
                     method: 'POST',
                     headers: {
@@ -131,11 +127,11 @@
                         'Authorization': `Bearer ${apiKey}`
                     },
                     body: JSON.stringify({
-                        model: 'gpt-4o-mini', // מודל מהיר, חכם וזול במיוחד
+                        model: 'gpt-4o-mini',
                         messages: [
                             {
                                 role: 'system',
-                                content: `אתה עוזר AI מקצועי עבור בעלי צימרים ובתי אירוח. תפקידך לכתוב תגובה רשמית, בשפה עברית רהוטה ומקצועית, עבור ביקורת שאורח השאיר. טון הדיבור הנדרש ממך בתגובה זו הוא: ${tone}. אל תוסיף הקדמות כמו 'הנה התשובה שלך', כתוב רק את תוכן התגובה עצמה באופן מוכן להעתקה.`
+                                content: `אתה עוזר AI מקצועי עבור בעלי צימרים ובתי אירוח. תפקידך לכתוב תגובה רשמית, בשפה עברית רהוטה ומקצועית, עבור ביקורת שאורח השאיר. טון הדיבור הנדרש ממך בתגובה זו הוא: ${tone}. אל תוסיף הקדמות, כתוב רק את תוכן התגובה.`
                             },
                             {
                                 role: 'user',
@@ -149,19 +145,20 @@
                 const data = await response.json();
 
                 if (!response.ok) {
-                    throw new Error(data.error?.message || 'שגיאה לא ידועה בתקשורת עם OpenAI');
+                    // תיקון הבאג: עכשיו נציג את השגיאה המדויקת מהשרת של OpenAI בחלון התראה
+                    const errorMsg = data.error?.message || JSON.stringify(data);
+                    throw new Error(errorMsg);
                 }
 
-                // הצגת התוצאה האמיתית שחזרה מה-AI
                 const generatedText = data.choices[0].message.content;
                 outputContainer.innerText = generatedText;
                 resultArea.classList.remove('hidden');
 
             } catch (error) {
-                alert('אופס! קרה שיבוש בג'ינרוט: ' + error.message);
+                // מציג את השגיאה המלאה באלרט
+                alert('שגיאה מהשרת: ' + error.message);
                 console.error(error);
             } finally {
-                // החזרת הכפתור למצב רגיל
                 submitBtn.disabled = false;
                 submitBtn.innerText = "✨ ג'נרט תגובה מבוססת AI";
             }
