@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HostEase AI - מחולל תגובות לביקורות</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;600;700&display=swap');
+        body { font-family: 'Assistant', sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen text-gray-800">
+
+    <nav class="bg-white shadow-sm border-b border-gray-100">
+        <div class="max-w-5xl mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center space-x-2 space-x-reverse">
+                <span class="text-2xl font-bold text-indigo-600">🏠 HostEase <span class="text-gray-900">AI</span></span>
+            </div>
+            <div class="text-sm bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full font-semibold">
+                גרסת פיתוח (MVP)
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-3xl mx-auto px-4 py-10">
+        
+        <div class="text-center mb-10">
+            <h1 class="text-3xl font-bold text-gray-950 mb-3">מחולל תגובות חכם לביקורות אורחים</h1>
+            <p class="text-gray-600">הדבק את הביקורת מ-Booking או Airbnb, בחר את הטון הרצוי וקבל תגובה מושלמת בשניות.</p>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-8">
+            
+            <div class="mb-6">
+                <label class="block text-sm font-semibold text-gray-700 mb-2">1. הדבק את ביקורת האורח כאן:</label>
+                <textarea id="reviewInput" rows="5" class="w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-700 resize-none placeholder-gray-400 text-right" placeholder="לדוגמה: המקום היה מדהים ונקי, אבל הג'קוזי לא היה מספיק חם בערב והשירות היה קצת איטי..."></textarea>
+            </div>
+
+            <div class="mb-8">
+                <label class="block text-sm font-semibold text-gray-700 mb-3">2. בחר את טון התגובה הרצוי:</label>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    
+                    <label class="border border-gray-200 rounded-xl p-4 flex items-center cursor-pointer hover:border-indigo-500 transition bg-gray-50/50 has-[:checked]:border-indigo-600 has-[:checked]:bg-indigo-50/30">
+                        <input type="radio" name="tone" value="positive" checked class="w-4 h-4 text-indigo-600 focus:ring-indigo-500 ml-3">
+                        <div>
+                            <span class="block font-semibold text-gray-900 text-sm">שיווקי ומודה</span>
+                            <span class="block text-xs text-gray-500 mt-0.5">(לביקורות טובות שרוצים למנף)</span>
+                        </div>
+                    </label>
+
+                    <label class="border border-gray-200 rounded-xl p-4 flex items-center cursor-pointer hover:border-indigo-500 transition bg-gray-50/50 has-[:checked]:border-indigo-600 has-[:checked]:bg-indigo-50/30">
+                        <input type="radio" name="tone" value="apologetic" class="w-4 h-4 text-indigo-600 focus:ring-indigo-500 ml-3">
+                        <div>
+                            <span class="block font-semibold text-gray-900 text-sm">אמפתי ומתנצל</span>
+                            <span class="block text-xs text-gray-500 mt-0.5">(לביקורות פחות טובות)</span>
+                        </div>
+                    </label>
+
+                    <label class="border border-gray-200 rounded-xl p-4 flex items-center cursor-pointer hover:border-indigo-500 transition bg-gray-50/50 has-[:checked]:border-indigo-600 has-[:checked]:bg-indigo-50/30">
+                        <input type="radio" name="tone" value="assertive" class="w-4 h-4 text-indigo-600 focus:ring-indigo-500 ml-3">
+                        <div>
+                            <span class="block font-semibold text-gray-900 text-sm">מקצועי ואסרטיבי</span>
+                            <span class="block text-xs text-gray-500 mt-0.5">(לעמידה על שלכם מול אורח קנטרן)</span>
+                        </div>
+                    </label>
+
+                </div>
+            </div>
+
+            <button onclick="generateResponse()" class="w-full bg-indigo-600 text-white font-semibold py-4 px-6 rounded-xl hover:bg-indigo-700 transition shadow-sm flex justify-center items-center text-lg">
+                ✨ ג'נרט תגובה מבוססת AI
+            </button>
+
+            <div id="resultArea" class="mt-8 pt-8 border-t border-gray-100 hidden">
+                <div class="flex justify-between items-center mb-3">
+                    <label class="text-sm font-semibold text-gray-700">התגובה המומלצת שלך:</label>
+                    <button onclick="copyToClipboard()" class="text-sm font-medium text-indigo-600 hover:text-indigo-700 flex items-center">
+                        📋 העתק תגובה
+                    </button>
+                </div>
+                <div id="outputContainer" class="w-full p-4 bg-gray-50 border border-gray-200 rounded-xl text-gray-700 whitespace-pre-line text-right min-h-[100px]">
+                    </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script>
+        function generateResponse() {
+            const review = document.getElementById('reviewInput').value;
+            const tone = document.querySelector('input[name="tone"]:checked').value;
+            const resultArea = document.getElementById('resultArea');
+            const outputContainer = document.getElementById('outputContainer');
+
+            if (!review.trim()) {
+                alert('אנא הדבק ביקורת תחילה');
+                return;
+            }
+
+            // זמנית ב-MVP המקומי, אנחנו מדמים תשובה של AI לפי הטון שנבחר. 
+            // בשלב הבא נחבר את זה ל-API האמיתי.
+            let generatedText = "";
+            
+            if (tone === "positive") {
+                generatedText = "תודה רבה על המילים החמות! שמחנו מאוד לארח אתכם בצימר שלנו ושמחים לשמוע שנהניתם מהניקיון ומהאווירה. נשמח מאוד לראותכם שוב בין אורחינו בעתיד!";
+            } else if (tone === "apologetic") {
+                generatedText = "שלום ותודה על המשוב. אנו מודים לך על שהפנית את תשומת ליבנו לנושא הג'קוזי והשירות. אנו לוקחים את הערותיך ברצינות רבה וכבר פועלים לתקן את הנושא כדי להבטיח אירוח מושלם בעתיד. נשמח להזדמנות נוספת לארח אתכם ולתקן את החוויה.";
+            } else {
+                generatedText = "שלום, אנו מודים לך על הזמן שהקשת לכתיבת הביקורת. יחד עם זאת, חשוב לנו לציין כי המערכות שלנו נבדקות מדי יום ונמצאו תקינות לחלוטין במהלך שהותכם. אנו מקפידים על סטנדרט גבוה ומצרים על כך שהחוויה שלך לא תאמה את הציפיות.";
+            }
+
+            // הצגת התוצאה באנימציה קלה
+            outputContainer.innerText = generatedText;
+            resultArea.classList.remove('hidden');
+        }
+
+        function copyToClipboard() {
+            const text = document.getElementById('outputContainer').innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                alert('הטקסט הועתק בהצלחה!');
+            });
+        }
+    </script>
+</body>
+</html>
